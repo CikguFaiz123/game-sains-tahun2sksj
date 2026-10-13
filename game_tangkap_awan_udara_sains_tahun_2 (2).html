@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Game Tangkap Awan Udara - Sains Tahun 2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for cute typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #0c4a6e;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        /* Portrait Smartphone Aspect Ratio Container */
+        .game-screen {
+            width: 100vw;
+            height: 100vh;
+            max-width: 480px;
+            max-height: 920px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, #38bdf8 0%, #7dd3fc 40%, #bae6fd 75%, #e0f2fe 100%);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: background 1s ease-in-out;
+        }
+
+        /* Phase 2 Evening Orange Sunset Gradient */
+        .phase-2-bg {
+            background: linear-gradient(180deg, #ea580c 0%, #f97316 35%, #fb923c 70%, #ffedd5 100%) !important;
+        }
+
+        /* Phase 3 Night Dark Gradient */
+        .phase-3-bg {
+            background: linear-gradient(180deg, #090d16 0%, #0f172a 40%, #1e1b4b 75%, #312e81 100%) !important;
+        }
+
+        /* Phase 1: Flying Birds & Objects Animation */
+        @keyframes flyBirds {
+            0% { transform: translateX(-60px) translateY(0px) scale(0.85); opacity: 0; }
+            10% { opacity: 0.9; }
+            50% { transform: translateX(250px) translateY(-18px) scale(1.05); opacity: 1; }
+            90% { opacity: 0.9; }
+            100% { transform: translateX(540px) translateY(10px) scale(0.85); opacity: 0; }
+        }
+        @keyframes flyLeft {
+            0% { transform: translateX(540px) translateY(0px) scaleX(-1) scale(0.9); opacity: 0; }
+            10% { opacity: 0.85; }
+            50% { transform: translateX(220px) translateY(-22px) scaleX(-1) scale(1.1); opacity: 1; }
+            90% { opacity: 0.85; }
+            100% { transform: translateX(-60px) translateY(12px) scaleX(-1) scale(0.9); opacity: 0; }
+        }
+
+        /* Float Kite & Lantern Animation */
+        @keyframes floatKite {
+            0%, 100% { transform: translateY(0px) rotate(-6deg); }
+            50% { transform: translateY(-28px) rotate(8deg); }
+        }
+
+        /* Floating Leaves / Dandelion Seeds */
+        @keyframes floatLeaf {
+            0% { transform: translateY(-30px) translateX(0px) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(750px) translateX(140px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Shooting Star Animation */
+        @keyframes shootingStar {
+            0% { transform: translateX(120px) translateY(-120px) scale(0); opacity: 0; }
+            20% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { transform: translateX(-240px) translateY(240px) scale(1.3); opacity: 0; }
+        }
+
+        .bird-anim-1 { animation: flyBirds 12s linear infinite; }
+        .bird-anim-2 { animation: flyBirds 16s linear infinite; animation-delay: 3s; }
+        .bird-anim-3 { animation: flyLeft 18s linear infinite; animation-delay: 5s; }
+        .bird-anim-4 { animation: flyBirds 14s linear infinite; animation-delay: 9s; }
+
+        .kite-anim-1 { animation: floatKite 5s ease-in-out infinite; }
+        .kite-anim-2 { animation: floatKite 7s ease-in-out infinite; animation-delay: 2.5s; }
+
+        .leaf-anim-1 { animation: floatLeaf 11s ease-in-out infinite; }
+        .leaf-anim-2 { animation: floatLeaf 15s ease-in-out infinite; animation-delay: 4.5s; }
+
+        .shooting-star-anim { animation: shootingStar 4s ease-out infinite; animation-delay: 2s; }
+        .shooting-star-anim-2 { animation: shootingStar 5s ease-out infinite; animation-delay: 5.5s; }
+
+        /* Phase 2: Hot Air Balloon Floating Animation */
+        @keyframes floatBalloon {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+        .balloon-anim {
+            animation: floatBalloon 5s ease-in-out infinite;
+        }
+        .balloon-anim-small {
+            animation: floatBalloon 7s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+
+        /* Phase 3: Twinkling Stars Animation */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.25); }
+        }
+        .star-anim {
+            animation: twinkle 2s ease-in-out infinite;
+        }
+
+        /* Floating Cloud Animations */
+        .cloud-item {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.15s ease-out, filter 0.15s ease-out;
+            will-change: transform, top;
+            filter: drop-shadow(0px 10px 16px rgba(14, 165, 233, 0.4));
+        }
+        .cloud-item:active {
+            transform: scale(0.92);
+        }
+
+        /* Breeze / Wind lines background effect */
+        .wind-line {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 999px;
+            animation: moveWind 4s linear infinite;
+        }
+        @keyframes moveWind {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateX(100vw); opacity: 0; }
+        }
+
+        /* Pulse animation for CTA */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 255, 255, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(255, 255, 255, 0.9); }
+        }
+        .pulse-btn {
+            animation: pulseGlow 2s infinite;
+        }
+
+        /* Shake animation for wrong selection */
+        .shake-target {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- Main Game Frame -->
+    <div class="game-screen flex flex-col justify-between mx-auto sm:rounded-3xl border-4 border-sky-300 relative overflow-hidden">
+        
+        <!-- Phase Decorative Background Visual Elements -->
+        <!-- Fasa 1 Decor: Birds, Kites, Paper Planes & Floating Leaves -->
+        <div id="birdsDecor" class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+            <div class="bird-anim-1 absolute top-36 text-2xl sm:text-3xl opacity-85 drop-shadow-md">🦅 🕊️</div>
+            <div class="bird-anim-2 absolute top-60 text-xl sm:text-2xl opacity-80 drop-shadow-md">🕊️ 🐦</div>
+            <div class="bird-anim-3 absolute top-80 text-xl sm:text-2xl opacity-75 drop-shadow-md">🦜 🕊️</div>
+            <div class="bird-anim-4 absolute top-48 text-lg sm:text-xl opacity-70 drop-shadow-sm">✈️</div>
+
+            <!-- Kites floating gracefully -->
+            <div class="kite-anim-1 absolute top-40 left-6 text-3xl sm:text-4xl opacity-85 drop-shadow-lg">🪁</div>
+            <div class="kite-anim-2 absolute top-72 right-8 text-2xl sm:text-3xl opacity-75 drop-shadow-md">🪁</div>
+
+            <!-- Floating dandelion / leaves in wind -->
+            <div class="leaf-anim-1 absolute top-0 left-10 text-xl opacity-70">🍃</div>
+            <div class="leaf-anim-2 absolute top-0 left-1/2 text-lg opacity-60">🌾</div>
+        </div>
+
+        <!-- Fasa 2 Decor: Hot Air Balloons, Sunset Birds & Falling Autumn Leaves -->
+        <div id="balloonDecor" class="hidden absolute inset-0 pointer-events-none z-0 overflow-hidden">
+            <!-- Main Balloon -->
+            <div class="balloon-anim absolute top-40 right-4 text-5xl sm:text-6xl drop-shadow-xl">
+                🧺🎈
+            </div>
+            <!-- Secondary Distant Balloon -->
+            <div class="balloon-anim-small absolute top-64 left-6 text-3xl sm:text-4xl opacity-85 drop-shadow-md">
+                🎈
+            </div>
+            <!-- Sunset Birds Returning Home -->
+            <div class="bird-anim-1 absolute top-52 text-2xl opacity-80 drop-shadow-md">🦅 🕊️</div>
+            <div class="bird-anim-3 absolute top-72 text-xl opacity-70">🛩️</div>
+
+            <!-- Falling autumn leaves -->
+            <div class="leaf-anim-1 absolute top-0 left-16 text-xl opacity-75">🍂</div>
+            <div class="leaf-anim-2 absolute top-0 left-2/3 text-lg opacity-70">🍁</div>
+        </div>
+
+        <!-- Fasa 3 Decor: Moon, Stars, Owls, Sky Lanterns & Shooting Stars -->
+        <div id="nightDecor" class="hidden absolute inset-0 pointer-events-none z-0 overflow-hidden">
+            <!-- Moon -->
+            <div class="absolute top-40 right-4 text-5xl sm:text-6xl drop-shadow-[0_0_22px_rgba(253,224,71,0.9)]">🌙</div>
+            
+            <!-- Shooting Stars -->
+            <div class="shooting-star-anim absolute top-44 right-16 text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]">☄️</div>
+            <div class="shooting-star-anim-2 absolute top-60 right-8 text-xl drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]">✨</div>
+
+            <!-- Owls & Bats Flying in Night Sky -->
+            <div class="bird-anim-3 absolute top-52 text-2xl sm:text-3xl opacity-85">🦉</div>
+            <div class="bird-anim-2 absolute top-72 text-xl opacity-75">🦇</div>
+
+            <!-- Floating Lanterns -->
+            <div class="kite-anim-1 absolute top-64 left-8 text-2xl opacity-85 drop-shadow-[0_0_12px_rgba(251,146,60,0.8)]">🏮</div>
+            <div class="kite-anim-2 absolute top-48 left-1/3 text-xl opacity-75 drop-shadow-[0_0_10px_rgba(251,146,60,0.7)]">🏮</div>
+
+            <!-- Twinkling Stars -->
+            <div class="star-anim absolute top-48 left-6 text-yellow-200 text-xl">✨</div>
+            <div class="star-anim absolute top-64 left-1/3 text-yellow-300 text-base" style="animation-delay: 0.7s;">⭐</div>
+            <div class="star-anim absolute top-56 right-28 text-amber-200 text-lg" style="animation-delay: 1.2s;">✨</div>
+            <div class="star-anim absolute top-80 right-8 text-yellow-100 text-sm" style="animation-delay: 0.4s;">🌟</div>
+            <div class="star-anim absolute top-[22rem] left-10 text-yellow-200 text-base" style="animation-delay: 1.5s;">✨</div>
+            <div class="star-anim absolute top-[27rem] right-1/4 text-yellow-300 text-lg" style="animation-delay: 0.9s;">💫</div>
+            <div class="star-anim absolute top-[30rem] left-8 text-amber-200 text-xs" style="animation-delay: 1.8s;">⭐</div>
+        </div>
+
+        <!-- Animated Background Breeze Lines -->
+        <div class="wind-line h-1 w-32 top-16 left-0"></div>
+        <div class="wind-line h-2 w-48 top-36 left-0" style="animation-delay: 1.5s;"></div>
+        <div class="wind-line h-1.5 w-24 top-2/3 left-0" style="animation-delay: 0.8s;"></div>
+        <div class="wind-line h-1 w-40 top-1/2 left-0" style="animation-delay: 2.2s;"></div>
+
+        <!-- Header / Stats Bar -->
+        <header class="relative z-20 p-3 pt-4 flex justify-between items-center bg-white/40 backdrop-blur-md border-b border-white/50 rounded-b-2xl shadow-sm">
+            <!-- Health / Hearts -->
+            <div class="flex items-center gap-1 bg-white/80 px-3 py-1.5 rounded-full shadow-inner border border-sky-100">
+                <span id="lblLives" class="text-[11px] font-bold text-sky-800 mr-0.5">NYAWA:</span>
+                <div id="livesContainer" class="flex gap-1 text-base">
+                    ❤️ ❤️ ❤️
+                </div>
+            </div>
+
+            <!-- Mute / Sound Button -->
+            <button id="soundBtn" onclick="toggleSound()" class="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center text-xl shadow-md border border-sky-200 active:scale-90 transition">
+                🔊
+            </button>
+
+            <!-- Score -->
+            <div class="bg-amber-400 text-amber-950 px-3 py-1.5 rounded-full shadow-md font-extrabold border-2 border-amber-300 flex items-center gap-1 text-xs sm:text-sm">
+                <span id="lblScore">SKOR:</span>
+                <span id="scoreText" class="text-base font-black">0</span>
+            </div>
+        </header>
+
+        <!-- Question Box Display -->
+        <div class="relative z-20 px-4 pt-3">
+            <div id="questionBox" class="bg-gradient-to-r from-sky-600 to-indigo-600 text-white p-4 rounded-2xl shadow-xl border-2 border-white/80 text-center relative overflow-hidden transition-all duration-500">
+                <div class="text-xs tracking-wider font-bold text-sky-200 uppercase mb-1 flex items-center justify-center gap-2">
+                    <span id="phaseBadge" class="bg-amber-300 text-amber-950 px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm">☀️ FASA 1</span>
+                    <span id="lblQuestion">SOALAN</span>
+                    <span id="questionNumBadge" class="bg-sky-400/40 text-white px-2 py-0.5 rounded-full text-[10px]">1/15</span>
+                </div>
+                <div id="questionText" class="text-base sm:text-lg font-bold leading-snug drop-shadow-sm min-h-[48px] flex items-center justify-center">
+                    Sila tekan 'MULA' untuk bermain!
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Interactive Area (Clouds Spawn Here) -->
+        <main id="gameArea" class="relative flex-1 w-full overflow-hidden my-2">
+            <!-- Floating clouds inserted dynamically by JavaScript -->
+        </main>
+
+        <!-- Footer Decor / Character -->
+        <footer class="relative z-10 p-2 text-center pointer-events-none flex justify-between items-end px-4 pb-3">
+            <div class="text-3xl sm:text-4xl animate-bounce">🎈</div>
+            <div id="lblInstruction" class="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-[11px] font-bold text-sky-900 border border-white/60 shadow-sm">
+                ☁️ Sentuh Awan Yang Betul!
+            </div>
+            <div class="text-3xl sm:text-4xl animate-bounce" style="animation-delay: 0.3s;">🪁</div>
+        </footer>
+
+        <!-- START OVERLAY -->
+        <div id="startOverlay" class="absolute inset-0 z-50 bg-sky-900/85 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center text-white overflow-y-auto">
+            <div class="bg-white text-slate-800 p-5 sm:p-6 rounded-3xl shadow-2xl border-4 border-sky-300 max-w-xs w-full flex flex-col items-center gap-3 animate-scaleUp my-auto">
+                
+                <div class="text-5xl my-0.5 animate-pulse">☁️✨</div>
+                
+                <h1 id="startTitle" class="text-xl sm:text-2xl font-black text-sky-600 leading-tight">
+                    TANGKAP AWAN UDARA
+                </h1>
+                
+                <p id="startSubtitle" class="text-xs font-semibold text-slate-500 leading-relaxed">
+                    Sains Tahun 2 (Tajuk: Udara)
+                </p>
+
+                <!-- Language Selector -->
+                <div class="w-full bg-sky-50 p-2 rounded-2xl border border-sky-200">
+                    <label id="lblSelectLang" class="text-[11px] font-bold text-sky-800 block mb-1">
+                        Pilihan Bahasa / Select Language:
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btnBM" onclick="setLanguage('bm')" class="py-1.5 px-3 rounded-xl font-bold text-xs border-2 border-sky-500 bg-sky-500 text-white shadow-sm transition">
+                            🇲🇾 Melayu
+                        </button>
+                        <button id="btnEN" onclick="setLanguage('en')" class="py-1.5 px-3 rounded-xl font-bold text-xs border-2 border-slate-200 bg-white text-slate-600 shadow-sm transition">
+                            🇬🇧 English
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Player Details Form -->
+                <div class="w-full flex flex-col gap-2 text-left">
+                    <div>
+                        <label id="lblNameLabel" class="text-[11px] font-bold text-slate-600 mb-0.5 block">Nama Murid / Student Name:</label>
+                        <input type="text" id="playerName" placeholder="Nama murid..." class="w-full px-3 py-2 text-xs rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none font-bold text-slate-800 bg-slate-50">
+                    </div>
+                    <div>
+                        <label id="lblClassLabel" class="text-[11px] font-bold text-slate-600 mb-0.5 block">Kelas / Class:</label>
+                        <input type="text" id="playerClass" placeholder="cth: 2 Cemerlang..." class="w-full px-3 py-2 text-xs rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none font-bold text-slate-800 bg-slate-50">
+                    </div>
+                </div>
+
+                <button id="btnStart" onclick="startGame()" class="pulse-btn w-full bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-white font-extrabold text-base py-3 px-6 rounded-2xl shadow-lg border-b-4 border-green-700 active:translate-y-1 transition mt-1">
+                    ▶️ MULA MAIN
+                </button>
+
+                <button id="btnViewLeaderboard" onclick="openLeaderboard()" class="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-xs py-2 px-4 rounded-xl shadow border-b-2 border-amber-600 active:translate-y-0.5 transition flex items-center justify-center gap-1.5">
+                    🏆 PAPAN MENDAHULUAN (LEADERBOARD)
+                </button>
+            </div>
+        </div>
+
+        <!-- GAME OVER / VICTORY OVERLAY -->
+        <div id="endOverlay" class="hidden absolute inset-0 z-50 bg-sky-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center text-white">
+            <div class="bg-white text-slate-800 p-6 rounded-3xl shadow-2xl border-4 border-amber-300 max-w-xs w-full flex flex-col items-center gap-3">
+                <div id="endEmoji" class="text-5xl my-1">🏆</div>
+                <h2 id="endTitle" class="text-2xl font-black text-amber-500">HEBAT SEKALI!</h2>
+                <p id="endSubtitle" class="text-xs font-semibold text-slate-500">Awak memang bijak dalam Sains!</p>
+                
+                <div class="bg-sky-50 border border-sky-200 rounded-2xl p-3 w-full my-1 flex flex-col gap-1.5 text-xs">
+                    <div class="flex justify-between font-bold text-slate-600 border-b border-sky-100 pb-1">
+                        <span id="lblEndPlayer">Pemain:</span>
+                        <span id="endPlayerInfo" class="text-sky-900 font-extrabold">Ahmad (2 Cemerlang)</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-sky-900">
+                        <span id="lblEndScore">Skor Terkumpul:</span>
+                        <span id="finalScore" class="text-emerald-600 text-base font-black">100</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-sky-900">
+                        <span id="lblEndBadge">Gred Kualiti:</span>
+                        <span id="finalBadge" class="text-amber-500 font-black">🌟🌟🌟</span>
+                    </div>
+                </div>
+
+                <button id="btnPlayAgain" onclick="startGame()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-base py-3 px-6 rounded-2xl shadow-lg border-b-4 border-blue-800 active:translate-y-1 transition">
+                    🔄 MAIN LAGI
+                </button>
+
+                <button id="btnEndLeaderboard" onclick="openLeaderboard()" class="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-xs py-2.5 px-4 rounded-xl shadow border-b-2 border-amber-600 active:translate-y-0.5 transition flex items-center justify-center gap-1">
+                    🏆 LIHAT REKOD MARKAH
+                </button>
+            </div>
+        </div>
+
+        <!-- CLOUD LEADERBOARD OVERLAY -->
+        <div id="leaderboardOverlay" class="hidden absolute inset-0 z-50 bg-sky-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center text-white">
+            <div class="bg-white text-slate-800 p-5 rounded-3xl shadow-2xl border-4 border-amber-400 max-w-xs w-full flex flex-col h-[82vh]">
+                
+                <!-- Header -->
+                <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+                    <div class="text-left">
+                        <h3 class="text-lg font-black text-sky-700 leading-tight">🏆 REKOD MARKAH</h3>
+                        <p class="text-[10px] text-slate-500 font-bold">Google Sheets Backend</p>
+                    </div>
+                    <button onclick="closeLeaderboard()" class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 font-black text-sm flex items-center justify-center border border-rose-300 active:scale-90 transition">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Leaderboard List Area -->
+                <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-2 pr-1 text-left my-2 text-xs">
+                    <div class="text-center py-8 text-slate-400 text-xs animate-pulse">
+                        ⏳ Memuat naik rekod markah...
+                    </div>
+                </div>
+
+                <!-- Footer button -->
+                <button onclick="closeLeaderboard()" class="w-full mt-2 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition">
+                    Tutup / Back
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Google Sheets API Script -->
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycb7tchr2eb6NaJ18ApvatOaj8HUvTMeizszroM_qSWhx4tjFFcjbKf5gHqgx4NXKkAA/exec";
+
+        // Simpan markah ke Google Sheets di Google Drive
+        window.saveScoreToCloud = async function(name, studentClass, finalScore) {
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        name: name || "Murid",
+                        class: studentClass || "Tahun 2",
+                        score: Number(finalScore) || 0
+                    })
+                });
+            } catch (err) {
+                console.error("Gagal simpan ke Google Sheets:", err);
+            }
+        };
+
+        // Ambil rekod markah dari Google Sheets untuk Leaderboard
+        window.loadLeaderboardData = async function() {
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs animate-pulse">⏳ Memuat naik rekod markah...</div>';
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const scores = await response.json();
+
+                if (!scores || scores.length === 0) {
+                    leaderboardList.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">🎈 Belum ada rekod markah lagi.</div>';
+                    return;
+                }
+
+                let listHTML = '';
+                scores.forEach((item, index) => {
+                    let rankBadge = `${index + 1}`;
+                    let bgStyle = 'bg-slate-50 border-slate-200';
+                    if (index === 0) { rankBadge = '🥇'; bgStyle = 'bg-amber-50 border-amber-300'; }
+                    else if (index === 1) { rankBadge = '🥈'; bgStyle = 'bg-slate-100 border-slate-300'; }
+                    else if (index === 2) { rankBadge = '🥉'; bgStyle = 'bg-orange-50 border-orange-200'; }
+
+                    listHTML += `
+                        <div class="flex items-center justify-between p-2 rounded-xl border ${bgStyle} shadow-sm">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <span class="font-black text-sm w-6 text-center shrink-0">${rankBadge}</span>
+                                <div class="truncate">
+                                    <div class="font-extrabold text-slate-800 truncate">${item.name}</div>
+                                    <div class="text-[10px] text-slate-500 font-semibold">${item.class}</div>
+                                </div>
+                            </div>
+                            <div class="font-black text-emerald-600 text-sm pl-2 shrink-0">
+                                ${item.score} <span class="text-[10px] text-slate-400 font-normal">mata</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                leaderboardList.innerHTML = listHTML;
+            } catch (err) {
+                console.error("Leaderboard fetch error:", err);
+                leaderboardList.innerHTML = '<div class="text-center py-6 text-rose-500 text-xs">⚠️ Tidak dapat memuat naik rekod dari Google Sheets.</div>';
+            }
+        };
+    </script>
+
+    <script>
+        /* Web Audio API Synthesizer */
+        let audioCtx = null;
+        let soundEnabled = true;
+        let bgmInterval = null;
+        let bgmNoteIndex = 0;
+
+        /* Playful C-major background music melody loop */
+        const bgmMelody = [
+            261.63, 329.63, 392.00, 523.25, 392.00, 329.63,
+            349.23, 440.00, 523.25, 440.00, 349.23, 329.63,
+            392.00, 493.88, 587.33, 493.88, 392.00, 329.63,
+            261.63, 329.63, 392.00, 523.25, 392.00, 261.63
+        ];
+
+        /* Localization Dictionaries */
+        let currentLang = 'bm';
+        let playerNameStr = 'Murid';
+        let playerClassStr = '2 Cemerlang';
+
+        const i18n = {
+            bm: {
+                lives: "NYAWA:",
+                score: "SKOR:",
+                question: "SOALAN",
+                instruction: "☁️ Sentuh Awan Yang Betul!",
+                startTitle: "TANGKAP AWAN UDARA",
+                startSubtitle: "Sains Tahun 2 (Tajuk: Udara)",
+                selectLang: "Pilihan Bahasa / Select Language:",
+                nameLabel: "Nama Murid:",
+                namePlace: "Nama anda...",
+                classLabel: "Kelas:",
+                classPlace: "cth: 2 Cemerlang...",
+                startBtn: "▶️ MULA MAIN",
+                endWinTitle: "HEBAT SEKALI!",
+                endWinSub: "Awak memang bijak dalam Sains!",
+                endLoseTitle: "CUBA LAGI!",
+                endLoseSub: "Jangan putus asa, mari cuba lagi!",
+                endPlayer: "Pemain:",
+                endScore: "Skor Terkumpul:",
+                endBadge: "Gred Kualiti:",
+                playAgain: "🔄 MAIN LAGI",
+                badgeGold: "🌟🌟🌟 (Cemerlang)",
+                badgeSilver: "🌟 (Usaha Lagi)"
+            },
+            en: {
+                lives: "LIVES:",
+                score: "SCORE:",
+                question: "QUESTION",
+                instruction: "☁️ Tap The Correct Cloud!",
+                startTitle: "AIR CLOUD CATCHER",
+                startSubtitle: "Year 2 Science (Topic: Air)",
+                selectLang: "Pilihan Bahasa / Select Language:",
+                nameLabel: "Student Name:",
+                namePlace: "Your name...",
+                classLabel: "Class:",
+                classPlace: "e.g., 2 Smart...",
+                startBtn: "▶️ START GAME",
+                endWinTitle: "EXCELLENT!",
+                endWinSub: "You are super smart in Science!",
+                endLoseTitle: "TRY AGAIN!",
+                endLoseSub: "Don't give up, try again!",
+                endPlayer: "Player:",
+                endScore: "Final Score:",
+                endBadge: "Grade:",
+                playAgain: "🔄 PLAY AGAIN",
+                badgeGold: "🌟🌟🌟 (Excellent)",
+                badgeSilver: "🌟 (Keep Trying)"
+            }
+        };
+
+        const questionsList = [
+            {
+                bm: {
+                    q: "Gas apakah yang diperlukan oleh manusia untuk bernafas?",
+                    correct: "Oksigen",
+                    options: ["Oksigen", "Karbon Dioksida", "Asap", "Wap Air"]
+                },
+                en: {
+                    q: "Which gas is needed by humans to breathe?",
+                    correct: "Oxygen",
+                    options: ["Oxygen", "Carbon Dioxide", "Smoke", "Water Vapour"]
+                }
+            },
+            {
+                bm: {
+                    q: "Apakah nama bagi udara yang bergerak?",
+                    correct: "Angin",
+                    options: ["Angin", "Awan", "Hujan", "Pelangi"]
+                },
+                en: {
+                    q: "What is moving air called?",
+                    correct: "Wind",
+                    options: ["Wind", "Cloud", "Rain", "Rainbow"]
+                }
+            },
+            {
+                bm: {
+                    q: "Tumbuhan memerlukan gas ini untuk membuat makanan sendiri:",
+                    correct: "Karbon Dioksida",
+                    options: ["Karbon Dioksida", "Oksigen", "Nitrogen", "Habuk"]
+                },
+                en: {
+                    q: "Plants need this gas to make their own food:",
+                    correct: "Carbon Dioxide",
+                    options: ["Carbon Dioxide", "Oxygen", "Nitrogen", "Dust"]
+                }
+            },
+            {
+                bm: {
+                    q: "Adakah udara wujud di dalam air dan di dalam tanah?",
+                    correct: "Ya, Wujud",
+                    options: ["Ya, Wujud", "Tidak Wujud", "Di Air Sahaja", "Di Tanah Sahaja"]
+                },
+                en: {
+                    q: "Does air exist inside water and soil?",
+                    correct: "Yes, It Exists",
+                    options: ["Yes, It Exists", "Does Not Exist", "In Water Only", "In Soil Only"]
+                }
+            },
+            {
+                bm: {
+                    q: "Antara objek berikut, yang manakah diisi dengan udara?",
+                    correct: "Pelampung",
+                    options: ["Pelampung", "Batu", "Buku Teks", "Pembaris"]
+                },
+                en: {
+                    q: "Which of the following objects is filled with air?",
+                    correct: "Swimming Float",
+                    options: ["Swimming Float", "Stone", "Textbook", "Ruler"]
+                }
+            },
+            {
+                bm: {
+                    q: "Jerebu berlaku apabila udara bercampur dengan...",
+                    correct: "Asap & Habuk",
+                    options: ["Asap & Habuk", "Air Hujan", "Pelangi", "Awan Putih"]
+                },
+                en: {
+                    q: "Haze occurs when air mixes with...",
+                    correct: "Smoke & Dust",
+                    options: ["Smoke & Dust", "Rainwater", "Rainbow", "White Clouds"]
+                }
+            },
+            {
+                bm: {
+                    q: "Apakah yang patut kita pakai di muka semasa jerebu?",
+                    correct: "Pelitup Muka",
+                    options: ["Pelitup Muka", "Topi Parti", "Cermin Mata", "Kasut Sukan"]
+                },
+                en: {
+                    q: "What should we wear on our face during haze?",
+                    correct: "Face Mask",
+                    options: ["Face Mask", "Party Hat", "Sunglasses", "Sports Shoes"]
+                }
+            },
+            {
+                bm: {
+                    q: "Apakah kebaikan udara yang bergerak (angin)?",
+                    correct: "Mengeringkan Baju",
+                    options: ["Mengeringkan Baju", "Menerbangkan Bumbung", "Menumbangkan Pokok", "Merosakkan Tiang"]
+                },
+                en: {
+                    q: "What is a good benefit of moving air (wind)?",
+                    correct: "Drying Clothes",
+                    options: ["Drying Clothes", "Blowing Roofs", "Uprooting Trees", "Damaging Poles"]
+                }
+            },
+            {
+                bm: {
+                    q: "Gas manakah yang wujud paling BANYAK dalam udara?",
+                    correct: "Nitrogen",
+                    options: ["Nitrogen", "Oksigen", "Karbon Dioksida", "Wap Air"]
+                },
+                en: {
+                    q: "Which gas exists the MOST in the air?",
+                    correct: "Nitrogen",
+                    options: ["Nitrogen", "Oxygen", "Carbon Dioxide", "Water Vapour"]
+                }
+            },
+            {
+                bm: {
+                    q: "Bolehkah kita melihat udara dengan mata kasar?",
+                    correct: "Tidak Boleh",
+                    options: ["Tidak Boleh", "Boleh Nampak", "Waktu Malam Sahaja", "Waktu Siang Sahaja"]
+                },
+                en: {
+                    q: "Can we see air with our bare eyes?",
+                    correct: "No, We Cannot",
+                    options: ["No, We Cannot", "Yes, We Can", "At Night Only", "In Daytime Only"]
+                }
+            },
+            {
+                bm: {
+                    q: "Apakah nama bagi angin yang bertiup sangat kencang dan kuat?",
+                    correct: "Ribut",
+                    options: ["Ribut", "Bayu", "Awan", "Hujan"]
+                },
+                en: {
+                    q: "What is the name of very strong and fast moving wind?",
+                    correct: "Storm",
+                    options: ["Storm", "Breeze", "Cloud", "Rain"]
+                }
+            },
+            {
+                bm: {
+                    q: "Apakah gas yang dihembus keluar oleh manusia semasa bernafas?",
+                    correct: "Karbon Dioksida",
+                    options: ["Karbon Dioksida", "Oksigen", "Nitrogen", "Habuk"]
+                },
+                en: {
+                    q: "Which gas is exhaled by humans when breathing out?",
+                    correct: "Carbon Dioxide",
+                    options: ["Carbon Dioxide", "Oxygen", "Nitrogen", "Dust"]
+                }
+            },
+            {
+                bm: {
+                    q: "Apakah alat yang menggunakan kekuatan angin untuk menghasilkan tenaga elektrik?",
+                    correct: "Kincir Angin",
+                    options: ["Kincir Angin", "Kipas Tangan", "Belon Udara", "Layang-layang"]
+                },
+                en: {
+                    q: "Which device uses wind force to generate electricity?",
+                    correct: "Windmill",
+                    options: ["Windmill", "Hand Fan", "Air Balloon", "Kite"]
+                }
+            },
+            {
+                bm: {
+                    q: "Pembakaran terbuka sampah sarap akan menyebabkan pencemaran...",
+                    correct: "Udara",
+                    options: ["Udara", "Bunyi", "Tanah", "Cahaya"]
+                },
+                en: {
+                    q: "Open burning of rubbish will cause pollution of...",
+                    correct: "Air",
+                    options: ["Air", "Noise", "Soil", "Light"]
+                }
+            },
+            {
+                bm: {
+                    q: "Apakah langkah terbaik untuk mengekalkan udara yang bersih dan segar?",
+                    correct: "Menanam Pokok",
+                    options: ["Menanam Pokok", "Membakar Sampah", "Menebang Pokok", "Meningkatkan Asap"]
+                },
+                en: {
+                    q: "What is the best way to keep the air clean and fresh?",
+                    correct: "Planting Trees",
+                    options: ["Planting Trees", "Burning Rubbish", "Cutting Trees", "Increasing Smoke"]
+                }
+            }
+        ];
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const btnBM = document.getElementById('btnBM');
+            const btnEN = document.getElementById('btnEN');
+
+            if (lang === 'bm') {
+                btnBM.className = "py-1.5 px-3 rounded-xl font-bold text-xs border-2 border-sky-500 bg-sky-500 text-white shadow-sm transition";
+                btnEN.className = "py-1.5 px-3 rounded-xl font-bold text-xs border-2 border-slate-200 bg-white text-slate-600 shadow-sm transition";
+            } else {
+                btnEN.className = "py-1.5 px-3 rounded-xl font-bold text-xs border-2 border-sky-500 bg-sky-500 text-white shadow-sm transition";
+                btnBM.className = "py-1.5 px-3 rounded-xl font-bold text-xs border-2 border-slate-200 bg-white text-slate-600 shadow-sm transition";
+            }
+
+            updateLocalizedText();
+        }
+
+        function updateLocalizedText() {
+            const txt = i18n[currentLang];
+            document.getElementById('lblLives').innerText = txt.lives;
+            document.getElementById('lblScore').innerText = txt.score;
+            document.getElementById('lblQuestion').innerText = txt.question;
+            document.getElementById('lblInstruction').innerText = txt.instruction;
+            
+            document.getElementById('startTitle').innerText = txt.startTitle;
+            document.getElementById('startSubtitle').innerText = txt.startSubtitle;
+            document.getElementById('lblSelectLang').innerText = txt.selectLang;
+            document.getElementById('lblNameLabel').innerText = txt.nameLabel;
+            document.getElementById('lblClassLabel').innerText = txt.classLabel;
+            document.getElementById('playerName').placeholder = txt.namePlace;
+            document.getElementById('playerClass').placeholder = txt.classPlace;
+            document.getElementById('btnStart').innerText = txt.startBtn;
+
+            document.getElementById('lblEndPlayer').innerText = txt.endPlayer;
+            document.getElementById('lblEndScore').innerText = txt.endScore;
+            document.getElementById('lblEndBadge').innerText = txt.endBadge;
+            document.getElementById('btnPlayAgain').innerText = txt.playAgain;
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function startBGM() {
+            if (!soundEnabled || bgmInterval) return;
+            initAudio();
+            bgmNoteIndex = 0;
+            bgmInterval = setInterval(() => {
+                if (!soundEnabled || !isGameRunning || !audioCtx) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const freq = bgmMelody[bgmNoteIndex % bgmMelody.length];
+                bgmNoteIndex++;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.38);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.38);
+            }, 380);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').innerText = soundEnabled ? '🔊' : '🔇';
+            if (!soundEnabled) {
+                stopBGM();
+            } else if (isGameRunning) {
+                startBGM();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'pop') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(160, now + 0.12);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                const notes = [400, 500, 600, 800];
+                notes.forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.2, now + idx * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                    o.start(now + idx * 0.1);
+                    o.stop(now + idx * 0.1 + 0.25);
+                });
+            }
+        }
+
+        let currentQuestionIdx = 0;
+        let score = 0;
+        let lives = 3;
+        let activeClouds = [];
+        let animationFrameId = null;
+        let isGameRunning = false;
+
+        function startGame() {
+            initAudio();
+
+            // Read Player Name and Class inputs
+            const inputName = document.getElementById('playerName').value.trim();
+            const inputClass = document.getElementById('playerClass').value.trim();
+
+            playerNameStr = inputName || (currentLang === 'bm' ? 'Murid' : 'Student');
+            playerClassStr = inputClass || 'Tahun 2';
+
+            document.getElementById('startOverlay').classList.add('hidden');
+            document.getElementById('endOverlay').classList.add('hidden');
+
+            currentQuestionIdx = 0;
+            score = 0;
+            lives = 3;
+            isGameRunning = true;
+
+            updateLocalizedText();
+            updateUI();
+            loadQuestion();
+            startBGM();
+        }
+
+        function updateUI() {
+            document.getElementById('scoreText').innerText = score;
+            
+            // Hearts UI
+            let heartStr = '';
+            for (let i = 0; i < lives; i++) heartStr += '❤️ ';
+            for (let i = lives; i < 3; i++) heartStr += '🖤 ';
+            document.getElementById('livesContainer').innerText = heartStr.trim();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIdx >= questionsList.length) {
+                endGame(true);
+                return;
+            }
+
+            clearClouds();
+
+            const gameScreen = document.querySelector('.game-screen');
+            const phaseBadge = document.getElementById('phaseBadge');
+            const questionBox = document.getElementById('questionBox');
+
+            const birdsDecor = document.getElementById('birdsDecor');
+            const balloonDecor = document.getElementById('balloonDecor');
+            const nightDecor = document.getElementById('nightDecor');
+
+            if (currentQuestionIdx < 5) {
+                // Fasa 1: Siang
+                gameScreen.className = 'game-screen flex flex-col justify-between mx-auto sm:rounded-3xl border-4 border-sky-300 relative overflow-hidden';
+                phaseBadge.innerText = currentLang === 'bm' ? '☀️ FASA 1 (SIANG)' : '☀️ PHASE 1 (DAY)';
+                phaseBadge.className = 'bg-amber-300 text-amber-950 px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm';
+                questionBox.className = 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white p-4 rounded-2xl shadow-xl border-2 border-white/80 text-center relative overflow-hidden transition-all duration-500';
+
+                birdsDecor.classList.remove('hidden');
+                balloonDecor.classList.add('hidden');
+                nightDecor.classList.add('hidden');
+
+            } else if (currentQuestionIdx < 10) {
+                // Fasa 2: Petang
+                gameScreen.className = 'game-screen phase-2-bg flex flex-col justify-between mx-auto sm:rounded-3xl border-4 border-orange-300 relative overflow-hidden';
+                phaseBadge.innerText = currentLang === 'bm' ? '🌅 FASA 2 (PETANG)' : '🌅 PHASE 2 (EVENING)';
+                phaseBadge.className = 'bg-amber-500 text-white px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm';
+                questionBox.className = 'bg-gradient-to-r from-orange-600 to-amber-600 text-white p-4 rounded-2xl shadow-xl border-2 border-white/80 text-center relative overflow-hidden transition-all duration-500';
+
+                birdsDecor.classList.add('hidden');
+                balloonDecor.classList.remove('hidden');
+                nightDecor.classList.add('hidden');
+
+            } else {
+                // Fasa 3: Malam
+                gameScreen.className = 'game-screen phase-3-bg flex flex-col justify-between mx-auto sm:rounded-3xl border-4 border-indigo-400 relative overflow-hidden';
+                phaseBadge.innerText = currentLang === 'bm' ? '🌙 FASA 3 (MALAM)' : '🌙 PHASE 3 (NIGHT)';
+                phaseBadge.className = 'bg-indigo-500 text-yellow-300 px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm';
+                questionBox.className = 'bg-gradient-to-r from-indigo-900 to-purple-900 text-white p-4 rounded-2xl shadow-xl border-2 border-indigo-400 text-center relative overflow-hidden transition-all duration-500';
+
+                birdsDecor.classList.add('hidden');
+                balloonDecor.classList.add('hidden');
+                nightDecor.classList.remove('hidden');
+            }
+
+            const rawQData = questionsList[currentQuestionIdx];
+            const qData = rawQData[currentLang];
+
+            document.getElementById('questionText').innerText = qData.q;
+            document.getElementById('questionNumBadge').innerText = `${currentQuestionIdx + 1}/${questionsList.length}`;
+
+            spawnCloudsForCurrentQuestion(qData);
+        }
+
+        function clearClouds() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '';
+            activeClouds = [];
+        }
+
+        function spawnCloudsForCurrentQuestion(qData) {
+            const gameArea = document.getElementById('gameArea');
+            const areaWidth = gameArea.clientWidth || 360;
+
+            const shuffledOptions = [...qData.options].sort(() => Math.random() - 0.5);
+
+            const cloudWidth = Math.min(220, areaWidth * 0.58);
+            const verticalGap = 150; 
+            const uniformSpeed = 0.9;
+
+            shuffledOptions.forEach((optionText, idx) => {
+                const cloudEl = document.createElement('div');
+                cloudEl.className = 'cloud-item flex items-center justify-center';
+                
+                cloudEl.innerHTML = `
+                    <div class="relative w-52 h-32 sm:w-60 sm:h-36 flex items-center justify-center p-3 text-center drop-shadow-xl">
+                        <svg class="absolute inset-0 w-full h-full text-white fill-current filter drop-shadow-lg" viewBox="0 0 24 24">
+                            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+                        </svg>
+                        <span class="relative z-10 text-sky-950 font-black text-sm sm:text-base px-3 leading-tight select-none drop-shadow-sm">
+                            ${optionText}
+                        </span>
+                    </div>
+                `;
+
+                const isEven = idx % 2 === 0;
+                const minX = 10;
+                const maxX = Math.max(minX, areaWidth - cloudWidth - 10);
+                const posX = isEven ? minX : maxX;
+                const posY = -140 - (idx * verticalGap);
+
+                cloudEl.style.left = `${posX}px`;
+                cloudEl.style.top = `${posY}px`;
+
+                const cloudObj = {
+                    element: cloudEl,
+                    text: optionText,
+                    isCorrect: optionText === qData.correct,
+                    x: posX,
+                    y: posY,
+                    speed: uniformSpeed,
+                    width: cloudWidth,
+                    height: 120
+                };
+
+                cloudEl.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    handleCloudTap(cloudObj);
+                });
+
+                gameArea.appendChild(cloudEl);
+                activeClouds.push(cloudObj);
+            });
+
+            animateMovement();
+        }
+
+        function animateMovement() {
+            if (!isGameRunning) return;
+
+            const gameArea = document.getElementById('gameArea');
+            const areaHeight = gameArea.clientHeight || 450;
+            const areaWidth = gameArea.clientWidth || 360;
+
+            let minY = Math.min(...activeClouds.map(c => c.y));
+
+            activeClouds.forEach(cloud => {
+                cloud.y += cloud.speed;
+                cloud.element.style.top = `${cloud.y}px`;
+
+                if (cloud.y > areaHeight + 20) {
+                    cloud.y = minY - 150;
+                    
+                    const cloudWidth = Math.min(220, areaWidth * 0.58);
+                    const minX = 10;
+                    const maxX = Math.max(minX, areaWidth - cloudWidth - 10);
+                    cloud.x = (Math.random() > 0.5) ? minX : maxX;
+                    cloud.element.style.left = `${cloud.x}px`;
+
+                    minY = cloud.y;
+                }
+            });
+
+            animationFrameId = requestAnimationFrame(animateMovement);
+        }
+
+        function handleCloudTap(cloudObj) {
+            if (!isGameRunning) return;
+
+            playSound('pop');
+
+            if (cloudObj.isCorrect) {
+                playSound('correct');
+                score += 10;
+                updateUI();
+
+                cloudObj.element.style.transform = 'scale(1.3)';
+                cloudObj.element.style.opacity = '0';
+                
+                confetti({
+                    particleCount: 25,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+
+                setTimeout(() => {
+                    currentQuestionIdx++;
+                    loadQuestion();
+                }, 400);
+
+            } else {
+                playSound('wrong');
+                cloudObj.element.classList.add('shake-target');
+                lives--;
+                updateUI();
+
+                setTimeout(() => {
+                    cloudObj.element.classList.remove('shake-target');
+                }, 400);
+
+                if (lives <= 0) {
+                    endGame(false);
+                }
+            }
+        }
+
+        function endGame(isWin) {
+            isGameRunning = false;
+            stopBGM();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            const txt = i18n[currentLang];
+            const endOverlay = document.getElementById('endOverlay');
+            const endTitle = document.getElementById('endTitle');
+            const endSubtitle = document.getElementById('endSubtitle');
+            const endEmoji = document.getElementById('endEmoji');
+            const finalScore = document.getElementById('finalScore');
+            const finalBadge = document.getElementById('finalBadge');
+
+            document.getElementById('endPlayerInfo').innerText = `${playerNameStr} (${playerClassStr})`;
+            finalScore.innerText = score;
+
+            if (isWin || score >= 60) {
+                playSound('win');
+                endEmoji.innerText = '🏆';
+                endTitle.innerText = txt.endWinTitle;
+                endSubtitle.innerText = txt.endWinSub;
+                finalBadge.innerText = txt.badgeGold;
+                
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.5 }
+                });
+            } else {
+                endEmoji.innerText = '💪';
+                endTitle.innerText = txt.endLoseTitle;
+                endSubtitle.innerText = txt.endLoseSub;
+                finalBadge.innerText = txt.badgeSilver;
+            }
+
+            if (window.saveScoreToCloud) {
+                window.saveScoreToCloud(playerNameStr, playerClassStr, score);
+            }
+
+            endOverlay.classList.remove('hidden');
+        }
+
+        function openLeaderboard() {
+            document.getElementById('leaderboardOverlay').classList.remove('hidden');
+            if (window.loadLeaderboardData) {
+                window.loadLeaderboardData();
+            }
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboardOverlay').classList.hidden = true;
+            document.getElementById('leaderboardOverlay').classList.add('hidden');
+        }
+
+        window.addEventListener('resize', () => {
+            if (isGameRunning) {
+                loadQuestion();
+            }
+        });
+
+        // Initialize default UI text
+        updateLocalizedText();
+    </script>
+</body>
+</html>
